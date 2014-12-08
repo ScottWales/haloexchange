@@ -28,6 +28,10 @@ module mpi_helper_mod
 contains
 
     ! Create a 2D cartesian communicator from WORLD
+    !
+    ! Call like
+    !     comm = mpi_helper%cartesian()
+    !
     function cartesian() result(comm)
         use mpi
         integer :: comm

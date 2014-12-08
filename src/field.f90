@@ -35,6 +35,12 @@ module field_mod
 
 contains
 
+    ! Construct a new 2D scalar field with a given size. The field is assumed to
+    ! be square, with the storage distributed across all the processers in comm.
+    !
+    ! Call like
+    !    temperature = field(2048, 20 , comm)
+    !
     function new_field(size, halo, comm) result(this)
         integer, intent(in) :: comm ! A cartesian communicator
         integer, intent(in) :: size, halo
@@ -47,6 +53,7 @@ contains
         call allocate_local_data(this)
     end function
 
+    ! Helper function to handle allocations
     subroutine allocate_local_data(this)
         type(field), intent(inout) :: this
 
@@ -59,6 +66,11 @@ contains
         allocate(this%local_data(min:max,min:max))
     end subroutine
 
+    ! Exchange halo data between processes
+    !
+    ! Call like
+    !    call temperature%sync()
+    !
     subroutine sync(this)
         class(field), intent(inout) :: this
 
