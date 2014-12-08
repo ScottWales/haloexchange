@@ -16,8 +16,23 @@
 !! limitations under the License.
 
 program haloexchange
-    integer :: comm, ierr
+    use mpi
+    use mpi_helper_mod
+    use field_mod
+
+    integer     :: comm, ierr
+    type(field) :: temperature
+
     call MPI_Init(ierr)
+
+    ! First create a cartesian communicator
+    comm = mpi_helper%cartesian()
+
+    ! Now create a field on the communicator
+    temperature = field(2048,20,comm)
+
+    ! Syncronise the field across processors
+    call temperature%sync()
 
     call MPI_Finalize(ierr)
 end program

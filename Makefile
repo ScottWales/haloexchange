@@ -19,7 +19,7 @@ build/%.o: src/%.f90
 	@ ${MKDIR} $(dir $@)
 	${FC} ${FCFLAGS} -c -o $@ $<
 
-bin/%: build/%.o
+bin/%: build/%.o build/mpi_helper.o build/field.o
 	@ ${MKDIR} $(dir $@)
 	${FC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
@@ -31,3 +31,5 @@ build/%.ao: src/%.f90
 bin/%-analyse: build/%.ao
 	@ ${MKDIR} analyse
 	${ANALYSE} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+
+build/haloexchange.o: build/mpi_helper.o build/field.o
