@@ -10,3 +10,7 @@ Build:
 Run tests:
 
     make check
+
+Run static analysis (requires Intel compiler)
+
+    make analyse

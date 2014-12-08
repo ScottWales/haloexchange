@@ -13,7 +13,7 @@ all:     bin/haloexchange
 analyse: bin/haloexchange-analyse
 
 clean:
-	${RM} -r build bin
+	${RM} -r build bin analyse
 
 build/%.o: src/%.f90
 	@ ${MKDIR} $(dir $@)
