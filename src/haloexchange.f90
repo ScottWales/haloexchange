@@ -20,19 +20,22 @@ program haloexchange
     use mpi_helper_mod
     use field_mod
 
-    integer     :: comm, ierr
+    integer     :: ierr
     type(field) :: temperature
+    type(cartesian_communicator)  :: comm
 
     call MPI_Init(ierr)
 
     ! First create a cartesian communicator
-    comm = mpi_helper%cartesian()
+    comm = cartesian_communicator()
+    if (comm%valid()) then
 
-    ! Now create a field on the communicator
-    temperature = field(2048,20,comm)
+        ! Now create a field on the communicator
+        temperature = field(2048,20,comm)
 
-    ! Syncronise the field across processors
-    call temperature%sync()
+        ! Syncronise the field across processors
+        call temperature%sync()
 
+    end if
     call MPI_Finalize(ierr)
 end program

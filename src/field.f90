@@ -16,10 +16,11 @@
 !! limitations under the License.
 
 module field_mod
+    use mpi_helper_mod
     private
     
     type, public :: field
-        integer :: comm !< MPI communicator
+        type(cartesian_communicator) :: comm !< MPI communicator
 
         integer :: grid_size !< We assume a square grid
         integer :: halo_size
@@ -30,7 +31,7 @@ module field_mod
     end type
 
     interface field
-        procedure :: new_field
+        procedure :: new_field_square
     end interface
 
 contains
@@ -41,9 +42,9 @@ contains
     ! Call like
     !    temperature = field(2048, 20 , comm)
     !
-    function new_field(size, halo, comm) result(this)
-        integer, intent(in) :: comm ! A cartesian communicator
+    function new_field_square(size, halo, comm) result(this)
         integer, intent(in) :: size, halo
+        type(cartesian_communicator), intent(in) :: comm
         type(field) :: this
 
         this%comm = comm
@@ -55,9 +56,14 @@ contains
 
     ! Helper function to handle allocations
     subroutine allocate_local_data(this)
+        use error_mod
+
         type(field), intent(inout) :: this
 
-        integer :: min, max
+        integer :: min, max        
+
+        call assert(this%comm%size(1) .eq. this%comm%size(2), &
+            'Communicator should be square')
 
         ! If halo=0 then min=1
         min = -this%halo_size + 1

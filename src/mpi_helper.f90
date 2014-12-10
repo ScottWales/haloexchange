@@ -17,42 +17,59 @@
 
 module mpi_helper_mod
     private
+    integer, parameter :: ndims = 2
 
-    ! Namespace
-    type :: mpi_helper_namespace
+    type, public :: communicator
+        integer mpi_comm
     contains
-        procedure, nopass :: cartesian
+        procedure :: valid
     end type
-    type(mpi_helper_namespace), public :: mpi_helper
+
+    type, public, extends(communicator) :: cartesian_communicator
+        integer :: size(ndims)
+        logical :: periodic(ndims)
+    end type
+
+    interface cartesian_communicator
+        procedure new_cartesian_comm_world
+    end interface
 
 contains
 
     ! Create a 2D cartesian communicator from WORLD
     !
     ! Call like
-    !     comm = mpi_helper%cartesian()
+    !     comm = cartesian_communicator()
     !
-    function cartesian() result(comm)
+    function new_cartesian_comm_world() result(this)
         use mpi
-        integer :: comm
+        type(cartesian_communicator) :: this
 
         integer, parameter :: ndims = 2
-        integer :: dims(ndims)
-        logical :: periods(ndims)
         logical :: reorder
         integer :: ierr
 
-        dims    = 1
-        periods = .true.
-        reorder = .true.
+        this%size     = 1
+        this%periodic = .true.
+        reorder       = .true.
 
         call MPI_Cart_create(MPI_COMM_WORLD, &
                              ndims,          &
-                             dims,           &
-                             periods,        &
+                             this%size,      &
+                             this%periodic,   &
                              reorder,        &
-                             comm,           &
+                             this%mpi_comm,  &
                              ierr)
+    end function
+
+    ! Check if the communicator is valid (i.e. this process is a member)
+    function valid(this)
+        use mpi
+
+        class(communicator), intent(in) :: this
+        logical valid
+
+        valid = this%mpi_comm .ne. MPI_COMM_NULL
     end function
 
 end module
