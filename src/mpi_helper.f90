@@ -116,4 +116,18 @@ contains
                        this%mpi_comm, request)
     end subroutine
 
+    ! Recieve data into `buf` from process rank `source`
+    ! Uses the source rank as the message tag
+    subroutine irecv(this, buf, source, request)
+        use mpi_f08
+        class(communicator), intent(inout) :: this
+        real,                intent(out)   :: buf(:,:)
+        integer,             intent(in)    :: source
+        type(MPI_Request),   intent(out)   :: request
+
+        call MPI_IRecv(buf, size(buf), MPI_REAL, &
+                       source, source,           &
+                       this%mpi_comm, request)
+    end subroutine
+
 end module
