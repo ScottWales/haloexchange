@@ -49,9 +49,10 @@ contains
         logical :: reorder
         integer :: ierr
 
-        this%size     = 1
-        this%periodic = .true.
-        reorder       = .true.
+        this%periodic(:) = .true.
+        reorder          = .true.
+
+        call cart_size(this, MPI_COMM_WORLD)
 
         call MPI_Cart_create(MPI_COMM_WORLD, &
                              ndims,          &
@@ -71,5 +72,28 @@ contains
 
         valid = this%mpi_comm .ne. MPI_COMM_NULL
     end function
+
+    ! Set the size of `this` to fit within the processes of `comm`
+    ! Just use a square as a test
+    subroutine cart_size(this, comm)
+        use mpi
+        use error_mod
+
+        class(cartesian_communicator), intent(inout) :: this
+        integer, intent(in) :: comm
+
+        integer :: comm_size
+        integer :: ierr
+        integer :: side
+
+        call MPI_Comm_size(comm, comm_size, ierr)
+
+        side = floor(sqrt(real(comm_size)))
+
+        call assert(side*side .le. comm_size, &
+            'side^2 should be <= comm_size')
+
+        this%size(:) = side
+    end subroutine
 
 end module
