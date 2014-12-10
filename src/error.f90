@@ -23,6 +23,7 @@ contains
 
     ! If `test` is false print `message` to stderr and terminate the program
     subroutine assert(test, message)
+        use mpi
         logical,          intent(in) :: test
         character(len=*), intent(in) :: message
         integer :: ierr
@@ -31,11 +32,11 @@ contains
             return
         end if
     
-        write(0,*) message
+        write(0,*) 'ASSERT ERROR: ',message
 
         call traceback()
 
-        call MPI_Abort(ierr)
+        call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
     end subroutine
 
 #ifdef __INTEL_COMPILER

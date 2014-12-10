@@ -61,13 +61,19 @@ contains
         type(field), intent(inout) :: this
 
         integer :: min, max        
+        integer :: local_side
 
         call assert(this%comm%size(1) .eq. this%comm%size(2), &
             'Communicator should be square')
 
+        local_side = this%grid_size / this%comm%size(1)
+
+        call assert(local_side * this%comm%size(1) .eq. this%grid_size, &
+            'Field doesn''t fit inside the communicator')
+
         ! If halo=0 then min=1
         min = -this%halo_size + 1
-        max =  this%grid_size + this%halo_size
+        max =  local_side + this%halo_size
 
         allocate(this%local_data(min:max,min:max))
     end subroutine
