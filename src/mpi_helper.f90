@@ -16,13 +16,18 @@
 !! limitations under the License.
 
 module mpi_helper_mod
+    use :: mpi_f08, only: MPI_Comm
+
     private
+
     integer, parameter :: ndims = 2
 
     type, public :: communicator
-        integer mpi_comm
+        type(MPI_Comm) :: mpi_comm
+        integer   :: rank
     contains
         procedure :: valid
+        procedure :: isend
     end type
 
     type, public, extends(communicator) :: cartesian_communicator
@@ -42,7 +47,7 @@ contains
     !     comm = cartesian_communicator()
     !
     function new_cartesian_comm_world() result(this)
-        use mpi
+        use mpi_f08
         type(cartesian_communicator) :: this
 
         integer, parameter :: ndims = 2
@@ -61,11 +66,12 @@ contains
                              reorder,        &
                              this%mpi_comm,  &
                              ierr)
+        call MPI_Comm_rank(this%mpi_comm, this%rank, ierr)
     end function
 
     ! Check if the communicator is valid (i.e. this process is a member)
     function valid(this)
-        use mpi
+        use mpi_f08
 
         class(communicator), intent(in) :: this
         logical valid
@@ -76,11 +82,11 @@ contains
     ! Set the size of `this` to fit within the processes of `comm`
     ! Just use a square as a test
     subroutine cart_size(this, comm)
-        use mpi
+        use mpi_f08
         use error_mod
 
         class(cartesian_communicator), intent(inout) :: this
-        integer, intent(in) :: comm
+        type(MPI_Comm), intent(in) :: comm
 
         integer :: comm_size
         integer :: ierr
@@ -94,6 +100,20 @@ contains
             'side^2 should be <= comm_size')
 
         this%size(:) = side
+    end subroutine
+
+    ! Send data in `buf` to process rank `dest`
+    ! The message is tagged with the rank of the sending process
+    subroutine isend(this, buf, dest, request)
+        use mpi_f08
+        class(communicator), intent(inout) :: this
+        real,                intent(in)    :: buf(:,:)
+        integer,             intent(in)    :: dest
+        type(MPI_Request),   intent(out)   :: request
+
+        call MPI_ISend(buf, size(buf), MPI_REAL, &
+                       dest, this%rank,          &
+                       this%mpi_comm, request)
     end subroutine
 
 end module
